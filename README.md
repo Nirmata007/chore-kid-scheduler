@@ -1,73 +1,77 @@
-# Welcome to your Lovable project
+Syncly An AI-Driven Family Scheduling Companion Syncly is a powerful, AI-driven scheduling solution designed to centralize and streamline family life across four core categories: School, Daycare, Sports, and Home. By intelligently automating scheduling and communication, Syncly helps busy families stay organized with minimal effort.
 
-## Project info
+Key Features 📅 Unified Dashboard Daily, weekly, and monthly calendar views.
 
-**URL**: https://lovable.dev/projects/2c2ab5a8-2fa0-482b-83a5-372284271eda
+Seamless integration with Google/Apple Calendars, emails, texts, and external apps.
 
-## How can I edit this code?
+Events are categorized by child, activity type, and urgency for better organization.
 
-There are several ways of editing your application.
+🏫 Intelligent Integration (School & Daycare) Automatic import and parsing of notifications from school and daycare apps via secure email parsing/API connections.
 
-**Use Lovable**
+Auto-populates events with details like:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/2c2ab5a8-2fa0-482b-83a5-372284271eda) and start prompting.
+Date, time, recurrence options
 
-Changes made via Lovable will be committed automatically to this repo.
+Associated child(ren) and family members
 
-**Use your preferred IDE**
+Category (School event, Daycare reminder, Sports schedule, Home chore, etc.)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Location with embedded GPS map links
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Additional notes & costs
 
-Follow these steps:
+Interactive "To-Bring" checklist for essential items.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Edit or discard events seamlessly.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+⚽ Advanced Sports Scheduler Automated reminders for practices, games, and other events.
 
-# Step 3: Install the necessary dependencies.
-npm i
+Traffic alerts and travel time estimation.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+Carpool coordination with trusted contacts.
 
-**Edit a file directly in GitHub**
+🏠 Comprehensive Home Chore Organizer Assign tasks to children or caretakers.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Task tracking, reminders, completion status, and reward/incentive tracking.
 
-**Use GitHub Codespaces**
+🤖 AI-Powered Smart Assistant Detects schedule conflicts and suggests alternatives.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Auto-reschedules tasks based on weather, traffic, or priority changes.
 
-## What technologies are used for this project?
+Example: Reschedules outdoor chores if rain is forecasted.
 
-This project is built with:
+✅ To-Do List Management Task creation, assignment, tracking, and reminders.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Categorization options (personal, child-specific, household-wide).
 
-## How can I deploy this project?
+💬 Family Communication Hub Secure messaging/chat feature for easy coordination.
 
-Simply open [Lovable](https://lovable.dev/projects/2c2ab5a8-2fa0-482b-83a5-372284271eda) and click on Share -> Publish.
+Share event invitations, documents, notes, and urgent updates.
 
-## Can I connect a custom domain to my Lovable project?
+📌 Syncly vs. Competitors Syncly differentiates itself from alternatives like Jam Family Calendar through AI-driven automation, seamless integrations, and proactive scheduling capabilities.
 
-Yes, you can!
+Getting Started 🔧 Installation & Setup Clone the repository
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+bash git clone https://github.com/Nirmata007/Syncly.git cd Syncly Install dependencies
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+bash npm install Run the app locally
+
+bash npm start Environment Variables
+
+Configure .env to set up API keys and integration services (Google/Apple Calendars).
+
+🚀 Roadmap ✔️ Core functionality integration ✔️ Google/Apple Calendar sync ✔️ AI-powered scheduling 🔄 Mobile version development 🔄 Expanded AI features (voice assistant, predictive rescheduling)
+
+🔗 Contribution Guidelines We welcome contributions! To contribute:
+
+Fork the repository and create a new branch.
+
+Submit a Pull Request explaining your changes.
+
+Join discussions via GitHub Issues to propose improvements.
+
+📜 License © 2025 Syncly Technologies – All Rights Reserved.
+
+This software is proprietary and cannot be copied, distributed, or modified without explicit authorization. > Unauthorized use of any part of this project is prohibited.
+
+📧 Contact & Support 📩 Email: [eujalley10@domain.com] 🌍 Website: [Coming Soon]
