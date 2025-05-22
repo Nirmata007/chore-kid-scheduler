@@ -1,23 +1,32 @@
 import { useState, useEffect } from 'react';
-import { Check, Star, Clock, Home, Calendar, Book, Backpack, Trophy, Bell, Menu, X, ChevronRight, MapPin, Cloud, Sun, Plus, Heart, Shield } from 'lucide-react';
+import { Check, Star, Clock, Home, Calendar, Book, Backpack, Trophy, Bell, Menu, X, ChevronRight, MapPin, Cloud, Sun, Plus, Heart, Shield, ChevronLeft, Users, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import AddScheduleItem from '@/components/AddScheduleItem';
 import { Link } from 'react-router-dom';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addDays } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [completedItems, setCompletedItems] = useState<number[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [earnedPoints, setEarnedPoints] = useState(125);
-  const [showWeeklyView, setShowWeeklyView] = useState(false);
+  const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [selectedKid, setSelectedKid] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<'parent' | 'child'>('parent');
   const [scheduleItems, setScheduleItems] = useState([
     { 
       id: 1, 
       time: "10:00 AM", 
+      date: "2025-05-22",
       activity: "Daycare end-of-year party", 
       location: "Little Sprouts Daycare",
       child: "Alex",
@@ -31,6 +40,7 @@ const Index = () => {
     { 
       id: 2, 
       time: "12:00 PM", 
+      date: "2025-05-22",
       activity: "School field trip", 
       location: "Natural History Museum",
       child: "Emma",
@@ -44,6 +54,7 @@ const Index = () => {
     { 
       id: 3, 
       time: "4:00 PM", 
+      date: "2025-05-22",
       activity: "Soccer practice", 
       location: "Oakwood Fields",
       child: "Michael",
@@ -57,6 +68,7 @@ const Index = () => {
     { 
       id: 4, 
       time: "6:15 PM", 
+      date: "2025-05-22",
       activity: "Cheer practice", 
       location: "All-Star Gymnasium",
       child: "Lily",
@@ -67,6 +79,62 @@ const Index = () => {
       address: "321 All-Star Boulevard",
       driveTime: "35 min" 
     },
+    { 
+      id: 20, 
+      time: "3:30 PM", 
+      date: "2025-05-24",
+      activity: "Dentist appointment", 
+      location: "Family Dental Care",
+      child: "Michael",
+      category: "health",
+      note: "Annual checkup",
+      points: 10,
+      icon: "🦷",
+      address: "567 Health Avenue",
+      driveTime: "15 min" 
+    },
+    { 
+      id: 21, 
+      time: "5:00 PM", 
+      date: "2025-05-25",
+      activity: "Ballet class", 
+      location: "Grace Dance Studio",
+      child: "Lily",
+      category: "sports",
+      note: "Bring ballet shoes",
+      points: 15,
+      icon: "🩰",
+      address: "890 Arts Boulevard",
+      driveTime: "20 min" 
+    },
+    { 
+      id: 22, 
+      time: "4:00 PM", 
+      date: "2025-05-26",
+      activity: "Parent-Teacher Conference", 
+      location: "Lincoln Elementary",
+      child: "Emma",
+      category: "school",
+      note: "Discuss report card",
+      points: 10,
+      icon: "📚",
+      address: "123 Education Lane",
+      driveTime: "10 min" 
+    },
+    { 
+      id: 23, 
+      time: "7:30 PM", 
+      date: "2025-05-27",
+      activity: "Family Movie Night", 
+      location: "Home",
+      child: "All",
+      category: "home",
+      note: "Pick a movie together",
+      points: 5,
+      icon: "🎬",
+      address: "Home",
+      driveTime: "0 min" 
+    }
   ]);
 
   const chores = [
@@ -96,12 +164,30 @@ const Index = () => {
     { id: 19, name: "Trip to the Zoo", points: 200, icon: "🦁" },
   ];
 
+  const familyMembers = [
+    { id: 1, name: "Alex", avatar: "👦", role: "child", age: 5 },
+    { id: 2, name: "Emma", avatar: "👧", role: "child", age: 8 },
+    { id: 3, name: "Michael", avatar: "👦", role: "child", age: 12 },
+    { id: 4, name: "Lily", avatar: "👧", role: "child", age: 16 },
+    { id: 5, name: "Mom", avatar: "👩", role: "parent", age: 42 },
+    { id: 6, name: "Dad", avatar: "👨", role: "parent", age: 45 },
+  ];
+
   const handleAddScheduleItem = (newItem: any) => {
-    setScheduleItems(prev => [...prev, {
+    const enhancedItem = {
       ...newItem,
+      id: Date.now(),
       points: 10, // Default points
       icon: getIconForCategory(newItem.category),
-    }]);
+    };
+    
+    setScheduleItems(prev => [...prev, enhancedItem]);
+    
+    // Notify all users about the new item
+    toast({
+      title: "Schedule Updated",
+      description: `${enhancedItem.activity} has been added to the family schedule.`,
+    });
   };
 
   const getIconForCategory = (category: string): string => {
@@ -109,7 +195,7 @@ const Index = () => {
       case 'school': return "🏫";
       case 'daycare': return "🧸";
       case 'sports': return "⚽";
-      case 'health': return "💊";
+      case 'health': return "🏥";
       case 'chore': return "🧹";
       default: return "📝";
     }
@@ -161,6 +247,34 @@ const Index = () => {
     return "Good Evening";
   };
 
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      setCurrentMonth(prev => subMonths(prev, 1));
+    } else {
+      setCurrentMonth(prev => addMonths(prev, 1));
+    }
+  };
+
+  const getMonthDays = () => {
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    return eachDayOfInterval({ start, end });
+  };
+
+  const filteredScheduleItems = selectedKid 
+    ? scheduleItems.filter(item => item.child === selectedKid || item.child === 'All') 
+    : scheduleItems;
+
+  const changeUserRole = (role: 'parent' | 'child') => {
+    setUserRole(role);
+    if (role === 'child') {
+      // For demo purposes, set Lily (16yo) as the current child user
+      setSelectedKid('Lily');
+    } else {
+      setSelectedKid(null);
+    }
+  };
+
   const completedCount = completedItems.length;
   const totalDailyItems = scheduleItems.length + chores.length;
   const progressPercentage = (completedCount / totalDailyItems) * 100;
@@ -182,6 +296,44 @@ const Index = () => {
               <h1 className="text-xl font-bold">FamilySync</h1>
             </div>
             <div className="flex items-center space-x-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full bg-white/20">
+                    {userRole === 'parent' ? 
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>👩</AvatarFallback>
+                      </Avatar> : 
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>👧</AvatarFallback>
+                      </Avatar>
+                    }
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Switch User</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => changeUserRole('parent')}>
+                      <Avatar className="h-8 w-8 mr-2">
+                        <AvatarFallback>👩</AvatarFallback>
+                      </Avatar>
+                      <span>Parent View</span>
+                      {userRole === 'parent' && (
+                        <Badge className="ml-auto">Active</Badge>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => changeUserRole('child')}>
+                      <Avatar className="h-8 w-8 mr-2">
+                        <AvatarFallback>👧</AvatarFallback>
+                      </Avatar>
+                      <span>Lily's View (16)</span>
+                      {userRole === 'child' && (
+                        <Badge className="ml-auto">Active</Badge>
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Bell className="w-6 h-6" />
               <div className="flex items-center bg-white/20 px-2 py-1 rounded-full">
                 <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
@@ -251,19 +403,61 @@ const Index = () => {
                   <h2 className="text-2xl font-bold text-gray-800">{getTimeBasedGreeting()}</h2>
                   <p className="text-gray-600">{formatDate(currentDate)}</p>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowWeeklyView(!showWeeklyView)}
-                >
-                  {showWeeklyView ? "Daily View" : "Weekly View"}
-                </Button>
+                <Tabs defaultValue={viewMode} onValueChange={(v) => setViewMode(v as 'daily' | 'weekly' | 'monthly')}>
+                  <TabsList>
+                    <TabsTrigger value="daily">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      <span className="sr-only sm:not-sr-only">Daily</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="weekly">
+                      <CalendarDays className="w-4 h-4 mr-1" />
+                      <span className="sr-only sm:not-sr-only">Weekly</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="monthly">
+                      <CalendarDays className="w-4 h-4 mr-1" />
+                      <span className="sr-only sm:not-sr-only">Monthly</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
+              
+              {/* Filter by Kid (Only visible to parents) */}
+              {userRole === 'parent' && (
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    variant={selectedKid === null ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={() => setSelectedKid(null)}
+                    className="rounded-full"
+                  >
+                    <Users className="w-4 h-4 mr-1" />
+                    All
+                  </Button>
+                  {familyMembers
+                    .filter(member => member.role === 'child')
+                    .map(kid => (
+                      <Button
+                        key={kid.id}
+                        variant={selectedKid === kid.name ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedKid(kid.name)}
+                        className="rounded-full"
+                      >
+                        <span className="mr-1">{kid.avatar}</span>
+                        {kid.name}
+                      </Button>
+                    ))}
+                </div>
+              )}
               
               {/* Progress Card */}
               <Card className="p-4 bg-gradient-to-r from-indigo-100 to-purple-100 border-0 shadow-md">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-bold text-indigo-800">Today's Progress</h3>
+                  <h3 className="text-lg font-bold text-indigo-800">
+                    {viewMode === 'daily' ? "Today's Progress" : 
+                     viewMode === 'weekly' ? "Weekly Progress" : 
+                     "Monthly Progress"}
+                  </h3>
                   <div className="flex items-center space-x-1">
                     <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                     <span className="font-medium">{earnedPoints} points</span>
@@ -299,106 +493,188 @@ const Index = () => {
                 </div>
               </Card>
 
-              {/* Daily Schedule or Weekly Overview */}
-              {showWeeklyView ? (
-                <Card className="p-4 border-0 shadow-md">
-                  <div className="flex items-center mb-3">
-                    <Calendar className="w-5 h-5 text-indigo-600 mr-2" />
-                    <h3 className="text-lg font-bold text-gray-800">Weekly Overview</h3>
-                  </div>
-                  <div className="space-y-3">
-                    {upcomingEvents.map(event => (
-                      <div
-                        key={event.id}
-                        className="flex items-center p-3 rounded-lg bg-gray-50 border border-gray-200"
-                      >
-                        <div className="flex-shrink-0 mr-3">
-                          {getCategoryIcon(event.category)}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center text-sm text-gray-600 mb-1">
-                            <span className="font-medium mr-2">{event.date}</span>
-                            <Clock className="w-3 h-3 mr-1" />
-                            <span>{event.time}</span>
-                          </div>
-                          <p className="font-medium text-gray-800">
-                            {event.activity}
-                          </p>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              ) : (
-                <Card className="p-4 border-0 shadow-md">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-indigo-600 mr-2" />
-                      <h3 className="text-lg font-bold text-gray-800">Today's Schedule</h3>
-                    </div>
-                    <AddScheduleItem onAddItem={handleAddScheduleItem}>
-                      <Button variant="outline" size="sm" className="flex items-center">
-                        <Plus className="w-4 h-4 mr-1" />
-                        Add Event
+              {/* Daily, Weekly, or Monthly View */}
+              <Card className="p-4 border-0 shadow-md">
+                {viewMode === 'monthly' ? (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <Button variant="ghost" size="sm" onClick={() => navigateMonth('prev')}>
+                        <ChevronLeft className="h-4 w-4" />
                       </Button>
-                    </AddScheduleItem>
+                      <h3 className="text-lg font-bold">
+                        {format(currentMonth, 'MMMM yyyy')}
+                      </h3>
+                      <Button variant="ghost" size="sm" onClick={() => navigateMonth('next')}>
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        <div key={day} className="text-center font-medium text-sm py-2">
+                          {day}
+                        </div>
+                      ))}
+                      {getMonthDays().map(day => {
+                        const dateStr = format(day, 'yyyy-MM-dd');
+                        const dayEvents = scheduleItems.filter(
+                          item => item.date === dateStr && 
+                            (selectedKid ? item.child === selectedKid || item.child === 'All' : true)
+                        );
+                        
+                        return (
+                          <div
+                            key={dateStr}
+                            className={`p-1 min-h-[60px] border rounded-md ${
+                              isSameDay(day, new Date()) 
+                                ? 'bg-blue-100 border-blue-300' 
+                                : 'bg-white border-gray-200'
+                            }`}
+                            onClick={() => {
+                              setCurrentDate(day);
+                              setViewMode('daily');
+                            }}
+                          >
+                            <div className="font-medium text-sm mb-1">
+                              {format(day, 'd')}
+                            </div>
+                            {dayEvents.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {dayEvents.slice(0, 2).map(event => (
+                                  <div 
+                                    key={event.id}
+                                    className={`w-full text-xs truncate px-1 py-0.5 rounded ${
+                                      event.category === 'school' ? 'bg-blue-100' :
+                                      event.category === 'daycare' ? 'bg-purple-100' :
+                                      event.category === 'sports' ? 'bg-green-100' :
+                                      event.category === 'health' ? 'bg-red-100' :
+                                      'bg-gray-100'
+                                    }`}
+                                    title={`${event.time} - ${event.activity}`}
+                                  >
+                                    {event.activity}
+                                  </div>
+                                ))}
+                                {dayEvents.length > 2 && (
+                                  <div className="w-full text-xs text-gray-500 px-1">
+                                    +{dayEvents.length - 2} more
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="space-y-3">
-                    {scheduleItems.map(item => (
-                      <div
-                        key={item.id}
-                        className={`flex items-start p-3 rounded-lg border-2 transition-all duration-200 ${
-                          completedItems.includes(item.id)
-                            ? 'bg-green-50 border-green-200'
-                            : 'bg-white border-gray-200'
-                        }`}
-                      >
-                        <div className="flex-shrink-0 mr-3 mt-1">
-                          {getCategoryIcon(item.category)}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center text-sm text-gray-600 mb-1">
-                            <Clock className="w-3 h-3 mr-1" />
-                            <span>{item.time}</span>
-                            <span className="mx-2">•</span>
-                            <span className="font-medium">{item.child}</span>
-                          </div>
-                          <p className={`font-medium ${
-                            completedItems.includes(item.id) ? 'text-green-700 line-through' : 'text-gray-800'
-                          }`}>
-                            {item.activity}
-                          </p>
-                          <div className="flex items-start text-sm text-gray-600 mt-1">
-                            <MapPin className="w-3 h-3 mr-1 mt-0.5" />
-                            <div>
-                              <p>{item.location}</p>
-                              <p className="text-xs">{item.driveTime} drive</p>
-                            </div>
-                          </div>
-                          {item.note && (
-                            <div className="mt-2 text-sm bg-yellow-50 p-1.5 rounded-md text-yellow-800">
-                              {item.note}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => toggleComplete(item.id, item.points)}
-                          className={`ml-2 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            completedItems.includes(item.id)
-                              ? 'bg-green-500 border-green-500'
-                              : 'border-gray-300'
-                          }`}
+                ) : viewMode === 'weekly' ? (
+                  <div>
+                    <div className="flex items-center mb-3">
+                      <Calendar className="w-5 h-5 text-indigo-600 mr-2" />
+                      <h3 className="text-lg font-bold text-gray-800">Weekly Overview</h3>
+                    </div>
+                    <div className="space-y-3">
+                      {upcomingEvents.map(event => (
+                        <div
+                          key={event.id}
+                          className="flex items-center p-3 rounded-lg bg-gray-50 border border-gray-200"
                         >
-                          {completedItems.includes(item.id) && (
-                            <Check className="w-4 h-4 text-white" />
-                          )}
-                        </button>
-                      </div>
-                    ))}
+                          <div className="flex-shrink-0 mr-3">
+                            {getCategoryIcon(event.category)}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center text-sm text-gray-600 mb-1">
+                              <span className="font-medium mr-2">{event.date}</span>
+                              <Clock className="w-3 h-3 mr-1" />
+                              <span>{event.time}</span>
+                            </div>
+                            <p className="font-medium text-gray-800">
+                              {event.activity}
+                            </p>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-gray-400" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </Card>
-              )}
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center">
+                        <Calendar className="w-5 h-5 text-indigo-600 mr-2" />
+                        <h3 className="text-lg font-bold text-gray-800">Today's Schedule</h3>
+                      </div>
+                      <AddScheduleItem onAddItem={handleAddScheduleItem}>
+                        <Button variant="outline" size="sm" className="flex items-center">
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add Event
+                        </Button>
+                      </AddScheduleItem>
+                    </div>
+                    <div className="space-y-3">
+                      {filteredScheduleItems
+                        .filter(item => item.date === format(currentDate, 'yyyy-MM-dd'))
+                        .map(item => (
+                          <div
+                            key={item.id}
+                            className={`flex items-start p-3 rounded-lg border-2 transition-all duration-200 ${
+                              completedItems.includes(item.id)
+                                ? 'bg-green-50 border-green-200'
+                                : 'bg-white border-gray-200'
+                            }`}
+                          >
+                            <div className="flex-shrink-0 mr-3 mt-1">
+                              {getCategoryIcon(item.category)}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center text-sm text-gray-600 mb-1">
+                                <Clock className="w-3 h-3 mr-1" />
+                                <span>{item.time}</span>
+                                <span className="mx-2">•</span>
+                                <span className="font-medium">{item.child}</span>
+                              </div>
+                              <p className={`font-medium ${
+                                completedItems.includes(item.id) ? 'text-green-700 line-through' : 'text-gray-800'
+                              }`}>
+                                {item.activity}
+                              </p>
+                              <div className="flex items-start text-sm text-gray-600 mt-1">
+                                <MapPin className="w-3 h-3 mr-1 mt-0.5" />
+                                <div>
+                                  <p>{item.location}</p>
+                                  <p className="text-xs">{item.driveTime} drive</p>
+                                </div>
+                              </div>
+                              {item.note && (
+                                <div className="mt-2 text-sm bg-yellow-50 p-1.5 rounded-md text-yellow-800">
+                                  {item.note}
+                                </div>
+                              )}
+                              
+                              {/* Show who added or completed the item */}
+                              {completedItems.includes(item.id) && (
+                                <div className="mt-2 text-xs text-gray-500 italic">
+                                  Completed by {userRole === 'parent' ? 'Parent' : 'Lily'}
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => toggleComplete(item.id, item.points)}
+                              className={`ml-2 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                completedItems.includes(item.id)
+                                  ? 'bg-green-500 border-green-500'
+                                  : 'border-gray-300'
+                              }`}
+                            >
+                              {completedItems.includes(item.id) && (
+                                <Check className="w-4 h-4 text-white" />
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
 
               {/* Home Chores */}
               <Card className="p-4 border-0 shadow-md">

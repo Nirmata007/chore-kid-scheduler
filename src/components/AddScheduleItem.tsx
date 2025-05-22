@@ -16,6 +16,7 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 type ScheduleItemType = 'school' | 'daycare' | 'sports' | 'health' | 'chore' | 'other';
 
@@ -29,7 +30,7 @@ const AddScheduleItem = ({ onAddItem, defaultType = 'other', children }: AddSche
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     activity: '',
-    date: '',
+    date: format(new Date(), 'yyyy-MM-dd'),
     time: '',
     location: '',
     child: '',
@@ -37,6 +38,14 @@ const AddScheduleItem = ({ onAddItem, defaultType = 'other', children }: AddSche
     note: '',
     address: '',
   });
+
+  const familyMembers = [
+    { id: 1, name: "Alex", avatar: "👦", role: "child", age: 5 },
+    { id: 2, name: "Emma", avatar: "👧", role: "child", age: 8 },
+    { id: 3, name: "Michael", avatar: "👦", role: "child", age: 12 },
+    { id: 4, name: "Lily", avatar: "👧", role: "child", age: 16 },
+    { id: 5, name: "All", avatar: "👨‍👩‍👧‍👦", role: "all", age: 0 },
+  ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -67,7 +76,7 @@ const AddScheduleItem = ({ onAddItem, defaultType = 'other', children }: AddSche
     // Reset form and close dialog
     setFormData({
       activity: '',
-      date: '',
+      date: format(new Date(), 'yyyy-MM-dd'),
       time: '',
       location: '',
       child: '',
@@ -142,13 +151,24 @@ const AddScheduleItem = ({ onAddItem, defaultType = 'other', children }: AddSche
               <Label htmlFor="child" className="text-right">
                 Child
               </Label>
-              <Input
-                id="child"
-                name="child"
-                value={formData.child}
-                onChange={handleChange}
-                className="col-span-3"
-              />
+              <Select 
+                value={formData.child} 
+                onValueChange={(value) => handleSelectChange('child', value)}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select child" />
+                </SelectTrigger>
+                <SelectContent>
+                  {familyMembers.map(member => (
+                    <SelectItem key={member.id} value={member.name}>
+                      <div className="flex items-center">
+                        <span className="mr-2">{member.avatar}</span>
+                        <span>{member.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
@@ -157,7 +177,7 @@ const AddScheduleItem = ({ onAddItem, defaultType = 'other', children }: AddSche
               </Label>
               <Select 
                 value={formData.category} 
-                onValueChange={(value) => handleSelectChange('category', value)}
+                onValueChange={(value) => handleSelectChange('category', value as ScheduleItemType)}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select category" />
