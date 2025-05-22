@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Check, Star, Clock, Home, Calendar, Book, Backpack, Trophy, Bell, Menu, X, ChevronRight, MapPin, Cloud, Sun, Plus } from 'lucide-react';
+import { Check, Star, Clock, Home, Calendar, Book, Backpack, Trophy, Bell, Menu, X, ChevronRight, MapPin, Cloud, Sun, Plus, Heart, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
+import AddScheduleItem from '@/components/AddScheduleItem';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -12,36 +14,7 @@ const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [earnedPoints, setEarnedPoints] = useState(125);
   const [showWeeklyView, setShowWeeklyView] = useState(false);
-
-  const toggleComplete = (id: number, points: number = 0) => {
-    const newCompletedItems = completedItems.includes(id) 
-      ? completedItems.filter(item => item !== id)
-      : [...completedItems, id];
-    
-    setCompletedItems(newCompletedItems);
-
-    // Add points only when completing (not uncompleting)
-    if (!completedItems.includes(id)) {
-      setEarnedPoints(prev => prev + points);
-      toast({
-        title: "Task Completed!",
-        description: points > 0 ? `You earned ${points} points!` : "Great job keeping on schedule!",
-      });
-    } else {
-      // Remove points when marking as incomplete
-      setEarnedPoints(prev => Math.max(0, prev - points));
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
-
-  const scheduleItems = [
+  const [scheduleItems, setScheduleItems] = useState([
     { 
       id: 1, 
       time: "10:00 AM", 
@@ -94,7 +67,7 @@ const Index = () => {
       address: "321 All-Star Boulevard",
       driveTime: "35 min" 
     },
-  ];
+  ]);
 
   const chores = [
     { id: 5, task: "Make beds", assignee: "Michael & Emma", points: 5, icon: "🛏️", category: "home", priority: "medium", rescheduled: false },
@@ -122,6 +95,53 @@ const Index = () => {
     { id: 18, name: "Extra Screen Time (30 min)", points: 75, icon: "📱" },
     { id: 19, name: "Trip to the Zoo", points: 200, icon: "🦁" },
   ];
+
+  const handleAddScheduleItem = (newItem: any) => {
+    setScheduleItems(prev => [...prev, {
+      ...newItem,
+      points: 10, // Default points
+      icon: getIconForCategory(newItem.category),
+    }]);
+  };
+
+  const getIconForCategory = (category: string): string => {
+    switch(category) {
+      case 'school': return "🏫";
+      case 'daycare': return "🧸";
+      case 'sports': return "⚽";
+      case 'health': return "💊";
+      case 'chore': return "🧹";
+      default: return "📝";
+    }
+  };
+
+  const toggleComplete = (id: number, points: number = 0) => {
+    const newCompletedItems = completedItems.includes(id) 
+      ? completedItems.filter(item => item !== id)
+      : [...completedItems, id];
+    
+    setCompletedItems(newCompletedItems);
+
+    // Add points only when completing (not uncompleting)
+    if (!completedItems.includes(id)) {
+      setEarnedPoints(prev => prev + points);
+      toast({
+        title: "Task Completed!",
+        description: points > 0 ? `You earned ${points} points!` : "Great job keeping on schedule!",
+      });
+    } else {
+      // Remove points when marking as incomplete
+      setEarnedPoints(prev => Math.max(0, prev - points));
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
 
   const getCategoryIcon = (category: string) => {
     switch(category) {
@@ -182,7 +202,7 @@ const Index = () => {
                 </div>
                 
                 <nav className="space-y-1">
-                  {['dashboard', 'school', 'daycare', 'sports', 'home', 'rewards'].map((item) => (
+                  {['dashboard', 'school', 'daycare', 'sports', 'home', 'health', 'safety', 'rewards'].map((item) => (
                     <button
                       key={item}
                       className={`flex items-center w-full px-4 py-3 text-left rounded-lg ${
@@ -200,6 +220,8 @@ const Index = () => {
                       {item === 'daycare' && <Backpack className="w-5 h-5 mr-3" />}
                       {item === 'sports' && <Trophy className="w-5 h-5 mr-3" />}
                       {item === 'home' && <Home className="w-5 h-5 mr-3" />}
+                      {item === 'health' && <Heart className="w-5 h-5 mr-3" />}
+                      {item === 'safety' && <Shield className="w-5 h-5 mr-3" />}
                       {item === 'rewards' && <Star className="w-5 h-5 mr-3" />}
                       <span className="capitalize">{item}</span>
                     </button>
@@ -310,9 +332,17 @@ const Index = () => {
                 </Card>
               ) : (
                 <Card className="p-4 border-0 shadow-md">
-                  <div className="flex items-center mb-3">
-                    <Calendar className="w-5 h-5 text-indigo-600 mr-2" />
-                    <h3 className="text-lg font-bold text-gray-800">Today's Schedule</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center">
+                      <Calendar className="w-5 h-5 text-indigo-600 mr-2" />
+                      <h3 className="text-lg font-bold text-gray-800">Today's Schedule</h3>
+                    </div>
+                    <AddScheduleItem onAddItem={handleAddScheduleItem}>
+                      <Button variant="outline" size="sm" className="flex items-center">
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Event
+                      </Button>
+                    </AddScheduleItem>
                   </div>
                   <div className="space-y-3">
                     {scheduleItems.map(item => (
@@ -372,9 +402,17 @@ const Index = () => {
 
               {/* Home Chores */}
               <Card className="p-4 border-0 shadow-md">
-                <div className="flex items-center mb-3">
-                  <Home className="w-5 h-5 text-orange-600 mr-2" />
-                  <h3 className="text-lg font-bold text-gray-800">Home Chores</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center">
+                    <Home className="w-5 h-5 text-orange-600 mr-2" />
+                    <h3 className="text-lg font-bold text-gray-800">Home Chores</h3>
+                  </div>
+                  <AddScheduleItem onAddItem={handleAddScheduleItem} defaultType="chore">
+                    <Button variant="outline" size="sm" className="flex items-center">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Chore
+                    </Button>
+                  </AddScheduleItem>
                 </div>
                 <div className="space-y-3">
                   {chores.map(chore => (
@@ -467,6 +505,30 @@ const Index = () => {
             </div>
           )}
 
+          {/* Health Tab */}
+          {activeTab === 'health' && (
+            <div className="mt-2">
+              <Link to="/health">
+                <Button className="w-full mb-4">Go to Health Dashboard</Button>
+              </Link>
+              <p className="text-center text-gray-600">
+                Track medications, appointments, and wellness information for your family.
+              </p>
+            </div>
+          )}
+
+          {/* Safety Tab */}
+          {activeTab === 'safety' && (
+            <div className="mt-2">
+              <Link to="/safety">
+                <Button className="w-full mb-4">Go to Safety Dashboard</Button>
+              </Link>
+              <p className="text-center text-gray-600">
+                Track locations, alerts, and emergency information for your family.
+              </p>
+            </div>
+          )}
+
           {/* Rewards View */}
           {activeTab === 'rewards' && (
             <div className="space-y-6">
@@ -533,10 +595,10 @@ const Index = () => {
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 shadow-md">
           <div className="flex items-center justify-around">
-            {['dashboard', 'school', 'daycare', 'sports', 'home'].map((item) => (
+            {['dashboard', 'school', 'daycare', 'sports', 'home', 'health', 'safety'].map((item) => (
               <button
                 key={item}
-                className={`flex flex-col items-center py-3 px-4 ${
+                className={`flex flex-col items-center py-3 px-2 ${
                   activeTab === item ? 'text-indigo-600' : 'text-gray-500'
                 }`}
                 onClick={() => setActiveTab(item)}
@@ -546,6 +608,8 @@ const Index = () => {
                 {item === 'daycare' && <Backpack className="w-5 h-5" />}
                 {item === 'sports' && <Trophy className="w-5 h-5" />}
                 {item === 'home' && <Home className="w-5 h-5" />}
+                {item === 'health' && <Heart className="w-5 h-5" />}
+                {item === 'safety' && <Shield className="w-5 h-5" />}
                 <span className="text-xs mt-1 capitalize">{item}</span>
               </button>
             ))}
