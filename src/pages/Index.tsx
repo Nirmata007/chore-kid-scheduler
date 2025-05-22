@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, Star, Clock, Home, Calendar, Book, Backpack, Trophy, Bell, Menu, X, ChevronRight, MapPin, Cloud, Sun, Plus, Heart, Shield, ChevronLeft, Users, CalendarDays, MessageCircle } from 'lucide-react';
+import { Check, Star, Clock, Home, Calendar, Book, Backpack, Trophy, Bell, Menu, X, ChevronRight, MapPin, Cloud, Sun, Plus, Heart, Shield, ChevronLeft, Users, CalendarDays, MessageCircle, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -502,6 +502,12 @@ const Index = () => {
                   <Button variant="outline" className="w-full flex items-center justify-center gap-2 h-12">
                     <MessageCircle className="w-5 h-5" /> 
                     <span>Family Chat</span>
+                  </Button>
+                </Link>
+                <Link to="/groceries" className="block">
+                  <Button variant="outline" className="w-full flex items-center justify-center gap-2 h-12">
+                    <ShoppingCart className="w-5 h-5" /> 
+                    <span>Grocery List</span>
                   </Button>
                 </Link>
               </div>
