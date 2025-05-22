@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, Star, Clock, Home, Calendar, Book, Backpack, Trophy, Bell, Menu, X, ChevronRight, MapPin, Cloud, Sun, Plus, Heart, Shield, ChevronLeft, Users, CalendarDays } from 'lucide-react';
+import { Check, Star, Clock, Home, Calendar, Book, Backpack, Trophy, Bell, Menu, X, ChevronRight, MapPin, Cloud, Sun, Plus, Heart, Shield, ChevronLeft, Users, CalendarDays, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -155,6 +155,8 @@ const Index = () => {
     { id: 13, message: "Permission slip due tomorrow for Emma's field trip", source: "Lincoln Elementary", time: "2 hours ago", urgent: true },
     { id: 14, message: "Soccer game location changed to Memorial Field", source: "Youth Soccer League", time: "Yesterday", urgent: false },
     { id: 15, message: "Daycare closed next Monday for staff training", source: "Little Sprouts Daycare", time: "Yesterday", urgent: true },
+    { id: 16, message: "New event added from Google Calendar: Dentist Appointment", source: "Google Calendar", time: "Just now", urgent: false },
+    { id: 17, message: "Weather alert: Rain predicted for tomorrow afternoon", source: "Weather Integration", time: "30 minutes ago", urgent: true },
   ];
 
   const rewards = [
@@ -293,7 +295,7 @@ const Index = () => {
               >
                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
-              <h1 className="text-xl font-bold">FamilySync</h1>
+              <h1 className="text-xl font-bold">Syncly</h1>
             </div>
             <div className="flex items-center space-x-3">
               <DropdownMenu>
@@ -349,12 +351,12 @@ const Index = () => {
             <div className="bg-white h-full w-64 shadow-xl p-4" onClick={e => e.stopPropagation()}>
               <div className="flex flex-col h-full">
                 <div className="mb-6 mt-2">
-                  <h2 className="text-2xl font-bold text-indigo-700">FamilySync</h2>
+                  <h2 className="text-2xl font-bold text-indigo-700">Syncly</h2>
                   <p className="text-gray-500 text-sm">Family Management Made Easy</p>
                 </div>
                 
                 <nav className="space-y-1">
-                  {['dashboard', 'school', 'daycare', 'sports', 'home', 'health', 'safety', 'rewards'].map((item) => (
+                  {['dashboard', 'calendar', 'school', 'daycare', 'sports', 'home', 'health', 'safety', 'rewards', 'communication'].map((item) => (
                     <button
                       key={item}
                       className={`flex items-center w-full px-4 py-3 text-left rounded-lg ${
@@ -363,11 +365,18 @@ const Index = () => {
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                       onClick={() => {
-                        setActiveTab(item);
+                        if (item === 'calendar') {
+                          // Navigate to calendar page
+                        } else if (item === 'communication') {
+                          // Navigate to communication page
+                        } else {
+                          setActiveTab(item);
+                        }
                         setIsMenuOpen(false);
                       }}
                     >
                       {item === 'dashboard' && <Calendar className="w-5 h-5 mr-3" />}
+                      {item === 'calendar' && <CalendarDays className="w-5 h-5 mr-3" />}
                       {item === 'school' && <Book className="w-5 h-5 mr-3" />}
                       {item === 'daycare' && <Backpack className="w-5 h-5 mr-3" />}
                       {item === 'sports' && <Trophy className="w-5 h-5 mr-3" />}
@@ -375,13 +384,25 @@ const Index = () => {
                       {item === 'health' && <Heart className="w-5 h-5 mr-3" />}
                       {item === 'safety' && <Shield className="w-5 h-5 mr-3" />}
                       {item === 'rewards' && <Star className="w-5 h-5 mr-3" />}
+                      {item === 'communication' && <MessageCircle className="w-5 h-5 mr-3" />}
                       <span className="capitalize">{item}</span>
                     </button>
                   ))}
                 </nav>
                 
                 <div className="mt-auto mb-4">
-                  <button className="flex items-center text-gray-700 hover:text-indigo-600">
+                  <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="font-medium text-gray-900 mb-2">Calendar Integrations</h3>
+                    <div className="flex gap-2 mb-2">
+                      <Button size="sm" variant="outline" className="text-xs flex gap-1 items-center">
+                        <span className="w-3 h-3 bg-blue-500 rounded-full"></span> Google
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-xs flex gap-1 items-center">
+                        <span className="w-3 h-3 bg-red-500 rounded-full"></span> Apple
+                      </Button>
+                    </div>
+                  </div>
+                  <button className="flex items-center text-gray-700 hover:text-indigo-600 mt-4">
                     <span className="mr-2">Settings</span>
                   </button>
                   <button className="flex items-center text-gray-700 hover:text-indigo-600 mt-2">
@@ -468,6 +489,22 @@ const Index = () => {
                   {completedCount} of {totalDailyItems} tasks completed
                 </p>
               </Card>
+
+              {/* Quick Action Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <Link to="/calendar" className="block">
+                  <Button variant="outline" className="w-full flex items-center justify-center gap-2 h-12">
+                    <CalendarDays className="w-5 h-5" /> 
+                    <span>Full Calendar</span>
+                  </Button>
+                </Link>
+                <Link to="/communication" className="block">
+                  <Button variant="outline" className="w-full flex items-center justify-center gap-2 h-12">
+                    <MessageCircle className="w-5 h-5" /> 
+                    <span>Family Chat</span>
+                  </Button>
+                </Link>
+              </div>
 
               {/* Notifications Card */}
               <Card className="p-4 border-0 shadow-md">
@@ -871,24 +908,53 @@ const Index = () => {
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 shadow-md">
           <div className="flex items-center justify-around">
-            {['dashboard', 'school', 'daycare', 'sports', 'home', 'health', 'safety'].map((item) => (
-              <button
-                key={item}
-                className={`flex flex-col items-center py-3 px-2 ${
-                  activeTab === item ? 'text-indigo-600' : 'text-gray-500'
-                }`}
-                onClick={() => setActiveTab(item)}
-              >
-                {item === 'dashboard' && <Calendar className="w-5 h-5" />}
-                {item === 'school' && <Book className="w-5 h-5" />}
-                {item === 'daycare' && <Backpack className="w-5 h-5" />}
-                {item === 'sports' && <Trophy className="w-5 h-5" />}
-                {item === 'home' && <Home className="w-5 h-5" />}
-                {item === 'health' && <Heart className="w-5 h-5" />}
-                {item === 'safety' && <Shield className="w-5 h-5" />}
-                <span className="text-xs mt-1 capitalize">{item}</span>
+            <button
+              className={`flex flex-col items-center py-3 px-2 ${
+                activeTab === 'dashboard' ? 'text-indigo-600' : 'text-gray-500'
+              }`}
+              onClick={() => setActiveTab('dashboard')}
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="text-xs mt-1">Dashboard</span>
+            </button>
+            
+            <Link to="/calendar" className="flex flex-col items-center py-3 px-2 text-gray-500">
+              <CalendarDays className="w-5 h-5" />
+              <span className="text-xs mt-1">Calendar</span>
+            </Link>
+            
+            {userRole === 'parent' ? (
+              <AddScheduleItem onAddItem={handleAddScheduleItem}>
+                <button className="flex flex-col items-center py-1 px-2 text-white">
+                  <div className="bg-indigo-600 rounded-full p-2 -mt-5 shadow-lg border-4 border-white">
+                    <Plus className="w-6 h-6" />
+                  </div>
+                  <span className="text-xs mt-1 text-gray-500">Add</span>
+                </button>
+              </AddScheduleItem>
+            ) : (
+              <button className="flex flex-col items-center py-1 px-2 text-white" disabled>
+                <div className="bg-gray-400 rounded-full p-2 -mt-5 shadow-lg border-4 border-white">
+                  <Plus className="w-6 h-6" />
+                </div>
+                <span className="text-xs mt-1 text-gray-500">Add</span>
               </button>
-            ))}
+            )}
+            
+            <Link to="/communication" className="flex flex-col items-center py-3 px-2 text-gray-500">
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-xs mt-1">Chat</span>
+            </Link>
+            
+            <button
+              className={`flex flex-col items-center py-3 px-2 ${
+                activeTab === 'rewards' ? 'text-indigo-600' : 'text-gray-500'
+              }`}
+              onClick={() => setActiveTab('rewards')}
+            >
+              <Star className="w-5 h-5" />
+              <span className="text-xs mt-1">Rewards</span>
+            </button>
           </div>
         </div>
       </div>

@@ -1,11 +1,12 @@
 
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Dialog,
   DialogContent,
@@ -37,7 +38,9 @@ const AddScheduleItem = ({ onAddItem, defaultType = 'other', children }: AddSche
     category: defaultType,
     note: '',
     address: '',
+    toBringItems: [] as { id: number; text: string; checked: boolean }[]
   });
+  const [newToBringItem, setNewToBringItem] = useState('');
 
   const familyMembers = [
     { id: 1, name: "Alex", avatar: "👦", role: "child", age: 5 },
@@ -54,6 +57,35 @@ const AddScheduleItem = ({ onAddItem, defaultType = 'other', children }: AddSche
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddToBringItem = () => {
+    if (newToBringItem.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        toBringItems: [
+          ...prev.toBringItems,
+          { id: Date.now(), text: newToBringItem.trim(), checked: false }
+        ]
+      }));
+      setNewToBringItem('');
+    }
+  };
+
+  const handleToggleToBringItem = (id: number) => {
+    setFormData(prev => ({
+      ...prev,
+      toBringItems: prev.toBringItems.map(item =>
+        item.id === id ? { ...item, checked: !item.checked } : item
+      )
+    }));
+  };
+
+  const handleRemoveToBringItem = (id: number) => {
+    setFormData(prev => ({
+      ...prev,
+      toBringItems: prev.toBringItems.filter(item => item.id !== id)
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -83,6 +115,7 @@ const AddScheduleItem = ({ onAddItem, defaultType = 'other', children }: AddSche
       category: defaultType,
       note: '',
       address: '',
+      toBringItems: []
     });
     setIsOpen(false);
   };
@@ -219,8 +252,8 @@ const AddScheduleItem = ({ onAddItem, defaultType = 'other', children }: AddSche
               />
             </div>
             
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="note" className="text-right">
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="note" className="text-right pt-2">
                 Notes
               </Label>
               <Textarea
@@ -230,6 +263,56 @@ const AddScheduleItem = ({ onAddItem, defaultType = 'other', children }: AddSche
                 onChange={handleChange}
                 className="col-span-3"
               />
+            </div>
+            
+            {/* To-Bring List */}
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right pt-2">
+                To Bring
+              </Label>
+              <div className="col-span-3 space-y-2">
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Add item..."
+                    value={newToBringItem}
+                    onChange={(e) => setNewToBringItem(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddToBringItem())}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={handleAddToBringItem}
+                  >
+                    Add
+                  </Button>
+                </div>
+                
+                <div className="space-y-2 mt-2">
+                  {formData.toBringItems.map(item => (
+                    <div key={item.id} className="flex items-center gap-2 bg-gray-50 p-2 rounded-md">
+                      <Checkbox 
+                        checked={item.checked}
+                        onCheckedChange={() => handleToggleToBringItem(item.id)}
+                        id={`item-${item.id}`}
+                      />
+                      <Label 
+                        htmlFor={`item-${item.id}`}
+                        className={`flex-grow ${item.checked ? 'line-through text-gray-500' : ''}`}
+                      >
+                        {item.text}
+                      </Label>
+                      <Button 
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveToBringItem(item.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
           <DialogFooter>
