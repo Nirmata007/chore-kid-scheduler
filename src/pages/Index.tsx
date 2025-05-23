@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import KidProgressCard from '@/components/KidProgressCard';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -281,6 +282,41 @@ const Index = () => {
   const totalDailyItems = scheduleItems.length + chores.length;
   const progressPercentage = (completedCount / totalDailyItems) * 100;
 
+  // Calculate progress stats for each kid
+  const getKidProgressStats = () => {
+    const kidStats = familyMembers
+      .filter(member => member.role === 'child')
+      .map(kid => {
+        const kidItems = scheduleItems.filter(item => 
+          item.child === kid.name && item.date === format(currentDate, 'yyyy-MM-dd')
+        );
+        
+        const kidChores = chores.filter(chore => 
+          chore.assignee.includes(kid.name) && !chore.rescheduled
+        );
+        
+        const totalTasks = kidItems.length + kidChores.length;
+        const completedTasks = [...kidItems, ...kidChores]
+          .filter(item => 'id' in item && completedItems.includes(item.id))
+          .length;
+        
+        // Calculate points - sum of points from completed items
+        const taskPoints = [...kidItems, ...kidChores]
+          .filter(item => 'id' in item && completedItems.includes(item.id) && 'points' in item)
+          .reduce((sum, item) => sum + (item.points || 0), 0);
+        
+        return {
+          name: kid.name,
+          avatar: kid.avatar,
+          completedTasks,
+          totalTasks,
+          points: taskPoints
+        };
+      });
+    
+    return kidStats;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
       {/* Mobile frame for visual effect */}
@@ -298,6 +334,9 @@ const Index = () => {
               <h1 className="text-xl font-bold">Syncly</h1>
             </div>
             <div className="flex items-center space-x-3">
+              <Link to="/communication" className="flex items-center justify-center p-1 rounded-full hover:bg-white/20 transition-colors">
+                <MessageCircle className="w-6 h-6" />
+              </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full bg-white/20">
@@ -489,6 +528,25 @@ const Index = () => {
                   {completedCount} of {totalDailyItems} tasks completed
                 </p>
               </Card>
+
+              {/* Kid Progress Cards - Only show for parents */}
+              {userRole === 'parent' && (
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-3">Progress by Child</h3>
+                  <div className="space-y-2">
+                    {getKidProgressStats().map(kidStat => (
+                      <KidProgressCard
+                        key={kidStat.name}
+                        name={kidStat.name}
+                        avatar={kidStat.avatar}
+                        completedTasks={kidStat.completedTasks}
+                        totalTasks={kidStat.totalTasks}
+                        points={kidStat.points}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Quick Action Buttons */}
               <div className="grid grid-cols-2 gap-3">
@@ -879,7 +937,7 @@ const Index = () => {
                     <h4 className="font-bold text-gray-800">{reward.name}</h4>
                     <div className="flex items-center justify-center mt-2">
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 mr-1" />
-                      <span className="font-medium">{reward.points} points</span>
+                      <span className="text-xs font-medium">{reward.points} points</span>
                     </div>
                     <Button 
                       className="mt-3 w-full"
